@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Maximize build space
-        uses: easimon/maximize-build-space@master
+        uses: easimon/maximize-build-space@v1.2.3
         with:
           root-reserve-mb: 8192
           temp-reserve-mb: 2048
