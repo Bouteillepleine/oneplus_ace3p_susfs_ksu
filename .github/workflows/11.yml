@@ -81,7 +81,7 @@ jobs:
          
       - name: Make AnyKernel3
         run: |
-        git clone https://github.com/TanakaLun/AnyKernel3 --depth=1 || exit 1
+          git clone https://github.com/TanakaLun/AnyKernel3 --depth=1 || exit 1
           rm -rf ./AnyKernel3/.git
           cp kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist/Image ./AnyKernel3/
       - name: Download SUSFS Module
