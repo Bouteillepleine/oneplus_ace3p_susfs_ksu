@@ -79,21 +79,26 @@ jobs:
          export LTO=thin
          ./kernel_platform/oplus/build/oplus_build_kernel.sh kalama gki
          
-      - name: Make AnyKernel3
+       - name: Create ZIP Package
+        working-directory: builds/${{ env.ROOT_DIR }}
         run: |
-         git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
-         rm -rf ./AnyKernel3/.git
-         cp kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist/Image ./AnyKernel3/
-         
+          cp kernel_platform/oneplus13r_v/kernel_platform/out/dist/Image AnyKernel3/Image
+          cd AnyKernel3  # Move to AnyKernel3 directory
+          ZIP_NAME="Anykernel3-OP11.zip"
+          echo "Creating zip file $ZIP_NAME..."
+          zip -r "../$ZIP_NAME" ./*
+          ls -lh "../$ZIP_NAME"
+          echo "zip_name=$ZIP_NAME" >> $GITHUB_ENV
+              
       - name: Download SUSFS Module
         run: |
          wget https://github.com/sidex15/ksu_module_susfs/releases/latest/download/ksu_module_susfs_1.5.2+.zip
          cp ksu_module_susfs_1.5.2+.zip ./AnyKernel3/
          
-      - name: Upload AnyKernel3
+     - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-         name: AK3_KSUN_11
-         path: ./AnyKernel3/*
+          name: kernel-${{ env.CONFIG }}
+          path: builds/${{ env.ROOT_DIR }}/*.zip
 
       
