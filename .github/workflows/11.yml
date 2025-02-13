@@ -19,7 +19,7 @@ jobs:
       - name: Configure Git
         run: |
          git config --global user.name "build"
-         git config --global user.email "3436378798@qq.com"
+         git config --global user.email "3@qq.com"
       - name: Install dependencies
         run: |
          sudo apt update && sudo apt upgrade -y
@@ -36,8 +36,8 @@ jobs:
          repo sync
          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
-         sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
-         sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
+         sed -i 's/ -trinity//g' kernel_platform/common/scripts/setlocalversion
+         sed -i 's/ -trinity//g' kernel_platform/msm-kernel/scripts/setlocalversion
          sed -i '$s|echo "\$res"|echo "$res-Mortis"|' kernel_platform/common/scripts/setlocalversion            
          sed -i '$s|echo "\$res"|echo "$res-Mortis"|' kernel_platform/msm-kernel/scripts/setlocalversion
          
