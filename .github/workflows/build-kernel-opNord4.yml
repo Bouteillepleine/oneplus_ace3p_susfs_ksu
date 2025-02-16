@@ -1,4 +1,4 @@
-ame: Build Kernel Next-SUSFS For Nord4
+Name: Build Kernel Next-SUSFS For Nord4
 on:
   workflow_dispatch:
 jobs:
