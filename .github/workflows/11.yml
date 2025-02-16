@@ -1,12 +1,10 @@
 name: Build Kernel Next-SUSFS For OP11+
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
@@ -17,57 +15,46 @@ jobs:
           remove-android: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
-
+          
       - name: Configure Git
         run: |
-          git config --global user.name "${{ secrets.GIT_USERNAME }}"
-          git config --global user.email "${{ secrets.GIT_EMAIL }}"
-
+          git config --global user.name "build"
+          git config --global user.email "3436378798@qq.com"
       - name: Install dependencies
         run: |
-          sudo apt update && sudo apt upgrade -y || exit 1
-          sudo apt install -y python3 git curl || exit 1
-
+          sudo apt update && sudo apt upgrade -y
+          sudo apt install -y python3 git curl
       - name: Install repo tool
         run: |
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo || exit 1
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
           chmod a+x ~/repo
-          sudo mv ~/repo /usr/local/bin/repo || exit 1
-
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache
-          key: ${{ runner.os }}-cache-${{ hashFiles('**/your_dependency_file') }}
-          restore-keys: |
-            ${{ runner.os }}-cache-
-
+          sudo mv ~/repo /usr/local/bin/repo
       - name: Initialize repo sync
         run: |
           mkdir kernel_workspace && cd kernel_workspace
-          repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8550 -m oneplus_11_v.xml --depth=1 || exit 1
-          repo sync || exit 1
+          repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8550 -m oneplus_11_v.xml --depth=1
+          repo sync
           rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          sed -i 's/ -Trinity//g' kernel_platform/common/scripts/setlocalversion
-          sed -i 's/ -Trinity//g' kernel_platform/msm-kernel/scripts/setlocalversion
-          sed -i '$s|echo "\\$res"|echo "$res-Mortis"|' kernel_platform/common/scripts/setlocalversion
-          sed -i '$s|echo "\\$res"|echo "$res-Mortis"|' kernel_platform/msm-kernel/scripts/setlocalversion
-
+          sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
+          sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "$res-Trinity"|' kernel_platform/common/scripts/setlocalversion            
+          sed -i '$s|echo "\$res"|echo "$res-Trinity"|' kernel_platform/msm-kernel/scripts/setlocalversion
+         
       - name: Set up KernelSU Next
         run: |
           cd kernel_workspace/kernel_platform
-          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next || exit 1
+          curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
           cd KernelSU-Next
-          KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200) || exit 1
+          KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
           echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
           sed -i "s/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
-
+        
       - name: Set up susfs
         run: |
           cd kernel_workspace
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android13-5.15 || exit 1
-          git clone https://github.com/TheWildJames/kernel_patches.git || exit 1
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android13-5.15
+          git clone https://github.com/TheWildJames/kernel_patches.git
           cd kernel_platform
           cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android13-5.15.patch ./common/
@@ -81,30 +68,32 @@ jobs:
           patch -p1 < 50_add_susfs_in_gki-android13-5.15.patch || true
           cp ../../kernel_patches/69_hide_stuff.patch ./
           patch -p1 -F 3 < 69_hide_stuff.patch
-          git add -A && git commit -a -m "BUILD Kernel" || exit 1
+          git add -A && git commit -a -m "BUILD Kernel"
           cd ..
-          cd ./msm-kernel && git add -A && git commit -a -m "BUILD Kernel" || exit 1
-
+          cd ./msm-kernel && git add -A && git commit -a -m "BUILD Kernel"
+          cd ..
+      - name: Mountify
+        run: |
+          echo "CONFIG_OVERLAY_FS=y" >> .config
+          echo "CONFIG_TMPFS=y" >> .config
+           
       - name: Build kernel
         run: |
           cd kernel_workspace
           export LTO=thin
-          ./kernel_platform/oplus/build/oplus_build_kernel.sh kalama gki || exit 1
-
+          ./kernel_platform/oplus/build/oplus_build_kernel.sh kalama gki
+         
       - name: Make AnyKernel3
         run: |
-          git clone https://github.com/TanakaLun/AnyKernel3 --depth=1 || exit 1
+          git clone https://github.com/TanakaLun/AnyKernel3 --depth=1
           rm -rf ./AnyKernel3/.git
-          cp kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist/Image ./AnyKernel3/
-
+          cp kernel_workspace/kernel_platform/out/msm-kernel-kalama-gki/dist/Image ./AnyKernel3/
       - name: Download SUSFS Module
         run: |
-          wget https://github.com/sidex15/ksu_module_susfs/releases/latest/download/ksu_module_susfs_1.5.2+.zip || exit 1
+          wget https://github.com/sidex15/ksu_module_susfs/releases/latest/download/ksu_module_susfs_1.5.2+.zip
           cp ksu_module_susfs_1.5.2+.zip ./AnyKernel3/
-
       - name: Upload AnyKernel3
         uses: actions/upload-artifact@v4
         with:
-          name: AK3_KSUN_11
+          name: AnyKernel3_KernelSU_Next_${{ env.KSUVER }}_${{ github.event.inputs.FEIL }}
           path: ./AnyKernel3/*
-
