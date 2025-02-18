@@ -142,10 +142,10 @@ jobs:
           # Remove defconfig check
           sed -i '2s/check_defconfig//' ./common/build.config.gki
 
-       - name: Mountify
+      - name: Mountify
         run: |
          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
-         echo "CONFIG_OVERLAY_FS=y >> ./common/arch/arm64/configs/gki_defconfig
+         echo "CONFIG_OVERLAY_FS=y" >> ./common/arch/arm64/configs/gki_defconf
            
       - name: Build kernel
         run: |
