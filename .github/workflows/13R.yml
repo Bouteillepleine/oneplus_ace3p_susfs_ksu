@@ -45,8 +45,8 @@ jobs:
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
          sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
          sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
-         sed -i '$s|echo "\$res"|echo "$res-Fortis"|' kernel_platform/common/scripts/setlocalversion            
-         sed -i '$s|echo "\$res"|echo "$res-Fortis"|' kernel_platform/msm-kernel/scripts/setlocalversion
+         sed -i '$s|echo "\$res"|echo "$res-Trinity"|' kernel_platform/common/scripts/setlocalversion            
+         sed -i '$s|echo "\$res"|echo "$res-Trinity"|' kernel_platform/msm-kernel/scripts/setlocalversion
          
       - name: Set up KernelSU Next
         run: |
@@ -79,7 +79,11 @@ jobs:
            cd ..
            cd ./msm-kernel && git add -A && git commit -a -m "BUILD Kernel"
            cd ..
-           
+       - name: Mountify
+        run: |
+         echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+         echo "CONFIG_OVERLAY_FS=y >> ./common/arch/arm64/configs/gki_defconfig
+         
       - name: Build kernel
         run: |
          cd kernel_workspace
