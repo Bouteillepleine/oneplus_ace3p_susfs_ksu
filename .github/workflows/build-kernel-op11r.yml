@@ -77,8 +77,8 @@ jobs:
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
          sed -i 's/ -dirty//g' kernel_platform/common/scripts/setlocalversion
          sed -i 's/ -dirty//g' kernel_platform/msm-kernel/scripts/setlocalversion
-         sed -i '$s|echo "\$res"|echo "$res-Wild+"|' kernel_platform/common/scripts/setlocalversion            
-         sed -i '$s|echo "\$res"|echo "$res-Wild+"|' kernel_platform/msm-kernel/scripts/setlocalversion
+         sed -i '$s|echo "\$res"|echo "$res-Trinity"|' kernel_platform/common/scripts/setlocalversion            
+         sed -i '$s|echo "\$res"|echo "$res-Trinity"|' kernel_platform/msm-kernel/scripts/setlocalversion
          
       - name: Set LTO to THIN
         run: |
@@ -131,6 +131,11 @@ jobs:
            
            #cp ../kernel_patches/selinux.c_fix.patch ./
            #patch -p1 -F 3 < selinux.c_fix.patch
+
+       - name: Mountify
+        run: |
+         echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
+         echo "CONFIG_OVERLAY_FS=y >> ./common/arch/arm64/configs/gki_defconfig
            
       - name: Build kernel
         run: |
