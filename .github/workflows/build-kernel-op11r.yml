@@ -132,10 +132,10 @@ jobs:
            #cp ../kernel_patches/selinux.c_fix.patch ./
            #patch -p1 -F 3 < selinux.c_fix.patch
 
-       - name: Mountify
+      - name: Mountify
         run: |
          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
-         echo "CONFIG_OVERLAY_FS=y >> ./common/arch/arm64/configs/gki_defconfig
+         echo "CONFIG_OVERLAY_FS=y" >> ./common/arch/arm64/configs/gki_defconf
            
       - name: Build kernel
         run: |
