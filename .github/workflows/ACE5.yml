@@ -1,9 +1,32 @@
-name: Build Kernel Next-SUSFS For OPACE5
+name: Build Oneplus Ace5 RKernelSU SUSFS
 on:
   workflow_dispatch:
+    inputs:
+      CPU:
+        description: "sm"
+        required: true
+        default: 'sm8650'
+      FEIL:
+        description: "Modele"
+        required: true
+        default: 'oneplus_ace5'
+      CPUD:
+        description: "Oneplus"
+        required: true
+        default: 'pineapple'
+      ANDROID_VERSION:
+        description: "Android"
+        required: true
+        default: 'android14'
+      KERNEL_VERSION:
+        description: "Branch"
+        required: true
+        default: '6.1'
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+    
     steps:
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
@@ -14,12 +37,6 @@ jobs:
           remove-android: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
-
-      - name: Free disk space
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -qq curl
-          curl -fsSL https://raw.githubusercontent.com/kou/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
           
       - name: Configure Git
         run: |
@@ -40,7 +57,7 @@ jobs:
       - name: Initialize repo and sync
         run: |
          mkdir kernel_workspace && cd kernel_workspace
-         repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/sm8650 -m oneplus_ace5.xml --depth=1
+         repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b refs/heads/oneplus/${{ github.event.inputs.CPU }} -m ${{ github.event.inputs.FEIL }}.xml --depth=1
          repo sync
          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
