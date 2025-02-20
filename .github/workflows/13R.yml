@@ -79,11 +79,7 @@ jobs:
            cd ..
            cd ./msm-kernel && git add -A && git commit -a -m "BUILD Kernel"
            cd ..
-      - name: Mountify
-        run: |
-         echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
-         echo "CONFIG_OVERLAY_FS=y" >> ./common/arch/arm64/configs/gki_defconf
-         
+               
       - name: Build kernel
         run: |
          cd kernel_workspace
