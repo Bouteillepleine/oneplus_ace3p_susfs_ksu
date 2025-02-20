@@ -165,7 +165,7 @@ jobs:
         run: |
          git clone https://github.com/TanakaLun/AnyKernel3 --depth=1
          rm -rf ./AnyKernel3/.git
-         cp kernel_workspace/kernel_platform/out/msm-waipio-waipio-gki/dist/Image ./AnyKernel3/
+         cp kernel_workspace/kernel_platform/out/msm-kernel-pineapple-gki/dist/Image ./AnyKernel3/
       
       - name: Upload AnyKernel3
         uses: actions/upload-artifact@v4
