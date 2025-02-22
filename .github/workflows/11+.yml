@@ -1,32 +1,27 @@
-name: Build KernelSU Next
+name: Build KernelSU Next SUSFS Ace2Pro
 on:
   workflow_dispatch:
     inputs:
       CPU:
         description: "分支"
         required: true
-        default: 'sm7675'
+        default: 'sm8550'
       FEIL:
         description: "配置文件"
         required: true
-        default: 'oneplus_ace_3v_v'
+        default: 'oneplus_11_v'
       CPUD:
         description: "处理器代号"
         required: true
-        default: 'pineapple'
+        default: 'kalama'
       ANDROID_VERSION:
         description: "内核安卓版本"
         required: true
-        default: 'android14'
+        default: 'android13'
       KERNEL_VERSION:
         description: "内核版本"
         required: true
-        default: '6.1'
-      THIN_LTO:
-        description: "Thin LTO"
-        required: true
-        type: boolean
-        default: false
+        default: '5.15'
       KSUNEXT_ENABLED:
         description: "添加 KSU Next"
         required: true
@@ -37,10 +32,14 @@ on:
         required: true
         type: boolean
         default: true
+      SUSFS_VERSION:
+        description: "SUSFS 版本"
+        required: true
+        default: 'v1.5.5'
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
@@ -51,11 +50,11 @@ jobs:
           remove-android: 'true'
           remove-haskell: 'true'
           remove-codeql: 'true'
-          
+
       - name: Configure Git
         run: |
          git config --global user.name "build"
-         git config --global user.email "3436378798@qq.com"
+         git config --global user.email "263623064@qq.com"
       - name: Install dependencies
         run: |
          sudo apt update && sudo apt upgrade -y
@@ -91,15 +90,16 @@ jobs:
            git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}
            git clone https://github.com/TheWildJames/kernel_patches.git
            cd kernel_platform
-           #cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
+           cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./KernelSU-Next/
            cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
            cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
            cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
            # Apply patches
            cd ./KernelSU-Next
-           #patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
-           cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch ./
-           patch -p1 < KernelSU-Next-Implement-SUSFS-v1.5.5-Universal.patch || true
+           # patch -p1 --forward < 10_enable_susfs_for_ksu.patch || true
+           cp ../../kernel_patches/KernelSU-Next-Implement-SUSFS-${{ github.event.inputs.SUSFS_VERSION }}-Universal.patch ./
+           patch -p1 < KernelSU-Next-Implement-SUSFS-${{ github.event.inputs.SUSFS_VERSION }}-Universal.patch || true
+           
            cd ../common
            patch -p1 < 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch || true
            cp ../../kernel_patches/69_hide_stuff.patch ./
@@ -109,38 +109,33 @@ jobs:
            cd ./msm-kernel && git add -A && git commit -a -m "BUILD Kernel"
            cd ..
              
-           #cp ../kernel_patches/apk_sign.c_fix.patch ./
-           #patch -p1 -F 3 < apk_sign.c_fix.patch
+           # cp ../kernel_patches/apk_sign.c_fix.patch ./
+           # patch -p1 -F 3 < apk_sign.c_fix.patch
              
-           #cp ../kernel_patches/core_hook.c_fix.patch ./
-           #patch -p1 --fuzz=3 < ./core_hook.c_fix.patch
+           # cp ../kernel_patches/core_hook.c_fix.patch ./
+           # patch -p1 --fuzz=3 < ./core_hook.c_fix.patch
            
-           #cp ../kernel_patches/selinux.c_fix.patch ./
-           #patch -p1 -F 3 < selinux.c_fix.patch
+           # cp ../kernel_patches/selinux.c_fix.patch ./
+           # patch -p1 -F 3 < selinux.c_fix.patch
            
       - name: Build kernel
-        if: github.event.inputs.THIN_LTO == 'false'
-        run: |
-         cd kernel_workspace
-         ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ github.event.inputs.CPUD }} gki
-      - name: Build kernel Thin Lto
-        if: github.event.inputs.THIN_LTO == 'true'
         run: |
          cd kernel_workspace
          LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ github.event.inputs.CPUD }} gki
+                  
       - name: Make AnyKernel3
         run: |
          git clone https://github.com/Kernel-SU/AnyKernel3 --depth=1
          rm -rf ./AnyKernel3/.git
-         cp kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist/Image ./AnyKernel3/
+         cp kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/gki_kernel/dist/Image ./AnyKernel3/
       - name: Upload AnyKernel3
         uses: actions/upload-artifact@v4
         with:
          name: AnyKernel3_KernelSU_Next_${{ env.KSUVER }}_${{ github.event.inputs.FEIL }}
          path: ./AnyKernel3/*
-         
+
       - name: Upload Image
         uses: actions/upload-artifact@v4
         with:
          name: Image_KernelSU_Next_${{ env.KSUVER }}_${{ github.event.inputs.FEIL }}
-         path: kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/dist/Image
+         path: kernel_workspace/kernel_platform/out/msm-kernel-${{ github.event.inputs.CPUD }}-gki/gki_kernel/dist/Image
