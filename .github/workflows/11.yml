@@ -191,7 +191,7 @@ jobs:
           echo "Creating zip files for all formats..."
           cd ./AnyKernel3
           
-          ZIP_NAME="Anykernel3-OnePuls11-KernelSU-SUSFS.zip"
+          ZIP_NAME="Anykernel3-OnePlus11-KernelSU-SUSFS.zip"
           echo "Creating zip file $ZIP_NAME..."
           zip -r "../$ZIP_NAME" ./*
           
