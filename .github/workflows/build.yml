@@ -211,20 +211,13 @@ jobs:
           
           echo "Building the kernel..."
           rm ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"         
-          
+          rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+                    
           BUILD_TYPE="gki"
           if [ "${{ inputs.soc }}" == "sun" ]; then
             BUILD_TYPE="perf"
-          fi          
-          ./kernel_platform/tools/bazel query //msm-kernel:*
-          ./kernel_platform/build_with_bazel.py \
-              -t ${{ inputs.soc }} \
-              $BUILD_TYPE \
-              --jobs=$(nproc --all) \
-              --verbose_failures \
-              --lto=thin \
-              -o "$(pwd)/out"
+          fi
+          LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} $BUILD_TYPE
 
       - name: Copy Images
         run: |
