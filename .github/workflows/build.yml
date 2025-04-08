@@ -216,7 +216,7 @@ jobs:
           
           echo "Building the kernel..."
           rm ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"          
+          rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"         
           
           BUILD_TYPE="gki"
           if [ "${{ inputs.soc }}" == "sun" ]; then
@@ -227,7 +227,7 @@ jobs:
           find ./kernel_platform -type f -exec sed -i 's/\(make\s\+-C[^\n]*\)\s\+/\1 -j$(nproc) /g' {} +
           sed -i 's/^\s*set\s\+-e\s*$/set -ex/' ./kernel_platform/build/kernel/android/prepare_vendor.sh
           LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} $BUILD_TYPE
-
+          
       - name: Copy Images
         run: |
           echo "Changing to configuration directory: $CONFIG..."
