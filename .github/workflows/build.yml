@@ -205,8 +205,7 @@ jobs:
           perl -pi -e 's{UTS_VERSION="\$\(echo \$UTS_VERSION \$CONFIG_FLAGS \$TIMESTAMP \| cut -b -\$UTS_LEN\)"}{UTS_VERSION="#1 SMP PREEMPT Sat Apr 20 04:20:00 UTC 2024"}' ./msm-kernel/scripts/mkcompile_h
 
       - name: Build the Kernel
-        run: |
-          cd kernel_workspace          
+        run: |                  
           ./kernel_platform/oplus/build/oplus_build_kernel.sh sun perf
 
       - name: Copy Images
