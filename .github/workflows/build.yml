@@ -225,7 +225,8 @@ jobs:
           sed -i '/"\${ROOT_DIR}\/build_with_bazel.py"/i EXTRA_KBUILD_ARGS+=" --jobs=4"' ./kernel_platform/msm-kernel/build_with_bazel.py
           export MAKEFLAGS="-j$(nproc)"
           find ./kernel_platform -type f -exec sed -i 's/\(make\s\+-C[^\n]*\)\s\+/\1 -j$(nproc) /g' {} +
-          sed -i 's/set \+-e/set -ex/g' ./kernel_platform/build/kernel/android/prepare_vendor.sh
+          sed -i 's/set \+-e/set -ex/g' ./kernel_platform/build/android/prepare_vendor.sh
+          sed -i '/if \[ "\${RECOMPILE_KERNEL}" == "1" \]; then/i set -x' ./kernel_platform/build/android/prepare_vendor.sh
           LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} $BUILD_TYPE
           
       - name: Copy Images
