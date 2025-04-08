@@ -206,25 +206,8 @@ jobs:
 
       - name: Build the Kernel
         run: |
-          echo "Changing to configuration directory: $CONFIG..."
-          cd "$CONFIG"
-          
-          echo "Building the kernel..."
-          rm ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
-                    
-          BUILD_TYPE="perf"    
-                      
-          ./kernel_platform/build_with_bazel.py \
-              -t ${{ inputs.soc }} \
-              $BUILD_TYPE \
-              --jobs=$(nproc --all) \
-              --verbose_failures \
-              --config=stamp \
-              --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
-              --ignore_missing_projects \
-              --lto=thin \
-              -o "$(pwd)/out"
+          cd kernel_workspace          
+          ./kernel_platform/oplus/build/oplus_build_kernel.sh sun perf
 
       - name: Copy Images
         run: |
