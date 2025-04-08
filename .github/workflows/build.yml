@@ -212,18 +212,11 @@ jobs:
           echo "Building the kernel..."
           rm ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
-          #git config --global user.email "bins4us@hotmail.com"
-          #git config --global user.name "TheWildJames"
-          #git add *
-          #git commit -s -a -m "getting rid of -dirty"
-          
-          BUILD_TYPE="gki"
+                    
+          BUILD_TYPE="gki"           
           if [ "${{ inputs.soc }}" == "sun" ]; then
             BUILD_TYPE="perf"
-          fi
-          # sed -i '/cmdline = \[.*bazel_subcommand.*\]/s/\(bazel_subcommand\)/\1, "--jobs=4"/' ./kernel_platform/msm-kernel/build_with_bazel.py
-          # sed -i '/"\${ROOT_DIR}\/build_with_bazel.py"/i EXTRA_KBUILD_ARGS+=" --jobs=4"' ./kernel_platform/msm-kernel/build_with_bazel.py
-          # LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} $BUILD_TYPE
+          fi          
           ./kernel_platform/build_with_bazel.py \
               -t ${{ inputs.soc }} \
               $BUILD_TYPE \
