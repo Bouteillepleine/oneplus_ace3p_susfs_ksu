@@ -39,7 +39,18 @@ jobs:
 
   trigger-release:
     runs-on: ubuntu-latest
-    needs:        
+    needs:
+        # - build-kernel-op11
+        # - build-kernel-op11r
+        # - build-kernel-op12
+        # - build-kernel-op13r
+        # - build-kernel-opnord4
+        # - build-kernel-opopen
+        # - build-kernel-opace2
+        # - build-kernel-opace2pro
+        # - build-kernel-opace5
+        # - build-kernel-op10t
+        # - build-kernel-op10pro
         - build-kernel-op13
         - build-kernel-opace5pro
     if: ${{ inputs.make_release }}
@@ -64,6 +75,7 @@ jobs:
         [+] Maphide LineageOS Detections
         [+] Futile Maphide for jit-zygote-cache Detections
         [+] Magic Mount Support
+
     steps:
       # Checkout the code
       - name: Checkout code
@@ -116,6 +128,7 @@ jobs:
               if [ -d "$file" ]; then
                   continue
               fi
+
               # Upload the file to the GitHub release
               echo "Uploading $file..."
               gh release upload ${{ env.NEW_TAG }} "$file"
