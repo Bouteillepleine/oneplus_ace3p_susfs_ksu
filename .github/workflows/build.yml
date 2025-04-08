@@ -213,10 +213,8 @@ jobs:
           rm ./kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
           rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
                     
-          BUILD_TYPE="gki"           
-          if [ "${{ inputs.soc }}" == "sun" ]; then
-            BUILD_TYPE="perf"
-          fi          
+          BUILD_TYPE="perf"    
+                      
           ./kernel_platform/build_with_bazel.py \
               -t ${{ inputs.soc }} \
               $BUILD_TYPE \
