@@ -224,17 +224,18 @@ jobs:
          run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
-          
-           ./build_with_bazel.py \
-               -t sun perf \
-               gki \
-               --jobs=$(nproc --all) \
-               --verbose_failures \
-               --config=stamp \
-               --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
-               --ignore_missing_projects \
-               --lto=thin \
-               -o "$(pwd)/out" || { echo "Bazel build failed"; exit 1; }
+
+          export PATH="/usr/lib/ccache:$PATH"
+          ./build_with_bazel.py \
+            -t sun perf \
+            gki \
+            --jobs=$(nproc --all) \
+            --verbose_failures \
+            --config=stamp \
+            --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
+            --ignore_missing_projects \
+            --lto=thin \
+            -o "$(pwd)/out" || { echo "Bazel build failed"; exit 1; }
 
        - name: Copy Images
          run: |
