@@ -235,7 +235,7 @@ jobs:
           OPLUS_FEATURES=$(export|grep -e "^declare -x OPLUS_FEATURE_BSP_"|sed 's/declare -x //g'|sed 's/"//g'|tr '\n' ' ')
           # setup build parameters before building external modules
           ./kernel_platform/oplus/bazel/oplus_modules_variant.sh ${{ inputs.soc }} "$BUILD_TYPE" "${OPLUS_FEATURES}"
-          ./kernel_platform/build_with_bazel.py -t ${{ inputs.soc }} "$BUILD_TYPE" --jobs=$(nproc --all) --lto=thin -g --verbose_failures -o "$(pwd)/out"
+          ./kernel_platform/build_with_bazel.py -t ${{ inputs.soc }} "$BUILD_TYPE" --jobs=$(nproc --all) --lto=full -g --verbose_failures -o "$(pwd)/out"
 
 
        - name: Copy Images
