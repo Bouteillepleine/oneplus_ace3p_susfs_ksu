@@ -224,18 +224,19 @@ jobs:
          run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG"
+          
+          echo "Building the kernel..."
+                    
+          BUILD_TYPE="gki"
+          if [ "${{ inputs.soc }}" == "sun" ]; then
+            BUILD_TYPE="perf"
+          fi  
+          
+          OPLUS_FEATURES=$(export|grep -e "^declare -x OPLUS_FEATURE_BSP_"|sed 's/declare -x //g'|sed 's/"//g'|tr '\n' ' ')
+          # setup build parameters before building external modules
+          ./kernel_platform/oplus/bazel/oplus_modules_variant.sh ${{ inputs.soc }} "$BUILD_TYPE" "${OPLUS_FEATURES}"
+          ./kernel_platform/build_with_bazel.py -t ${{ inputs.soc }} "$BUILD_TYPE" --jobs=$(nproc --all) --lto=thin -g --verbose_failures -o "$(pwd)/out"
 
-          export PATH="/usr/lib/ccache:$PATH"
-          ./build_with_bazel.py \
-            -t sun perf \
-            gki \
-            --jobs=$(nproc --all) \
-            --verbose_failures \
-            --config=stamp \
-            --user_kmi_symbol_lists=//msm-kernel:android/abi_gki_aarch64_qcom \
-            --ignore_missing_projects \
-            --lto=thin \
-            -o "$(pwd)/out" || { echo "Bazel build failed"; exit 1; }
 
        - name: Copy Images
          run: |
