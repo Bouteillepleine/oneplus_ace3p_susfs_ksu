@@ -14,103 +14,13 @@ on:
         default: true
 
 jobs:
-  build-batch-1: # Non Bazel Builds
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          #- model: OP11
-            soc: kalama
-            branch: oneplus/sm8550
-            manifest: oneplus_11_v.xml
-            android_version: android13
-            kernel_version: "5.15"
-          # - model: OP11r
-            soc: waipio
-            branch: oneplus/sm8475
-            manifest: oneplus_11r_v.xml
-            android_version: android13
-            kernel_version: "5.10"
-          #- model: OP-OPEN
-            soc: kalama
-            branch: oneplus/sm8550
-            manifest: oneplus_open_v.xml
-            android_version: android13
-            kernel_version: "5.15"
-          #- model: OP-ACE-2
-            soc: waipio
-            branch: oneplus/sm8475
-            manifest: oneplus_ace2_v.xml
-            android_version: android13
-            kernel_version: "5.10"
-          #- model: OP10t
-            soc: waipio
-            branch: oneplus/sm8475
-            manifest: oneplus_10t_v.xml
-            android_version: android12
-            kernel_version: "5.10"
-          #- model: OP10pro
-            soc: waipio
-            branch: oneplus/sm8450
-            manifest: oneplus_10_pro_v.xml
-            android_version: android12
-            kernel_version: "5.10"
-          #- model: OP-ACE-2-PRO
-            soc: kalama
-            branch: oneplus/sm8550
-            manifest: oneplus_ace2pro_v.xml
-            android_version: android13
-            kernel_version: "5.15"
-    uses: ./.github/workflows/build.yml
-    secrets: inherit
-    with:
-      model: ${{ matrix.model }}
-      soc: ${{ matrix.soc }}
-      branch: ${{ matrix.branch }}
-      manifest: ${{ matrix.manifest }}
-      android_version: ${{ matrix.android_version }}
-      kernel_version: ${{ matrix.kernel_version }}
-
-  build-batch-2:
-    # needs: build-batch-1
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          #- model: OP13
-            soc: sun
-            branch: oneplus/sm8750
-            manifest: JiuGeFaCai_oneplus_13_v.xml
-            android_version: android15
-            kernel_version: "6.6"
-          #- model: OPAce5Pro
-            soc: sun
-            branch: oneplus/sm8750
-            manifest: JiuGeFaCai_oneplus_ace5_pro_v.xml
-            android_version: android15
-            kernel_version: "6.6"
-    uses: ./.github/workflows/build.yml
-    secrets: inherit
-    with:
-      model: ${{ matrix.model }}
-      soc: ${{ matrix.soc }}
-      branch: ${{ matrix.branch }}
-      manifest: ${{ matrix.manifest }}
-      android_version: ${{ matrix.android_version }}
-      kernel_version: ${{ matrix.kernel_version }}
 
   build-batch-3:
     # needs: build-batch-2
     strategy:
       fail-fast: false
       matrix:
-        include:
-          #- model: OP12
-            soc: pineapple
-            branch: oneplus/sm8650
-            manifest: oneplus12_v.xml
-            android_version: android14
-            kernel_version: "6.1"
+        include:          
           - model: OP13r
             soc: pineapple
             branch: oneplus/sm8650
@@ -126,41 +36,12 @@ jobs:
       manifest: ${{ matrix.manifest }}
       android_version: ${{ matrix.android_version }}
       kernel_version: ${{ matrix.kernel_version }}
-
-  build-batch-4:
-    # needs: build-batch-3
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          #- model: OP-ACE-5
-            soc: pineapple
-            branch: oneplus/sm8650
-            manifest: oneplus_ace5.xml
-            android_version: android14
-            kernel_version: "6.1"
-          #- model: OP-NORD-4
-            soc: pineapple
-            branch: oneplus/sm7675
-            manifest: oneplus_nord_4_v.xml
-            android_version: android14
-            kernel_version: "6.1"
-    uses: ./.github/workflows/build.yml
-    secrets: inherit
-    with:
-      model: ${{ matrix.model }}
-      soc: ${{ matrix.soc }}
-      branch: ${{ matrix.branch }}
-      manifest: ${{ matrix.manifest }}
-      android_version: ${{ matrix.android_version }}
-      kernel_version: ${{ matrix.kernel_version }}
-
+  
   trigger-release:
     needs:
-      #- build-batch-1
-      #- build-batch-2
+      
       - build-batch-3
-      #- build-batch-4
+      
     runs-on: ubuntu-latest
     if: ${{ inputs.make_release }}
     env:
