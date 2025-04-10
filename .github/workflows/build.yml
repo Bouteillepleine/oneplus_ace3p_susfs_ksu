@@ -240,11 +240,7 @@ jobs:
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/kernel_platform"
           
-          echo "Running sed commands..."
-
-          sed -i 's/CONFIG_LTO=n/CONFIG_LTO=y/' "./common/arch/arm64/configs/gki_defconfig"
-          sed -i 's/CONFIG_LTO_CLANG_FULL=y/CONFIG_LTO_CLANG_THIN=y/' "./common/arch/arm64/configs/gki_defconfig"
-          sed -i 's/CONFIG_LTO_CLANG_NONE=y/CONFIG_LTO_CLANG_THIN=y/' "./common/arch/arm64/configs/gki_defconfig"
+          echo "Running sed commands..."         
           
           # Run sed commands for modifications
           sed -i 's/check_defconfig//' ./common/build.config.gki
@@ -257,7 +253,7 @@ jobs:
           sed -i 's/-dirty//' ./external/dtc/scripts/setlocalversion
           sed -i 's/-dirty//' ./build/kernel/kleaf/workspace_status_stamp.py || echo "No workspace_status_stamp.py!"
 
-          sed -i '/echo "LTO $LTO "/i export LTO=thin' ./oplus/build/oplus_setup.sh
+          sed -i '/echo "LTO $LTO "/i export LTO=full' ./oplus/build/oplus_setup.sh
           sed -i 's/export REPACK_IMG=true/export REPACK_IMG=false/g' ./oplus/build/oplus_setup.sh
          
           # Run perl command to modify UTS_VERSION
@@ -279,7 +275,7 @@ jobs:
           rm ./kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
           
           BUILD_TYPE="gki"
-          BAZEL_ARGS=(--jobs=$(nproc --all) --lto=thin)
+          BAZEL_ARGS=(--jobs=$(nproc --all) --lto=full)
           if [ "${{ inputs.soc }}" == "sun" ]; then
             BUILD_TYPE="perf"
             BAZEL_ARGS+=(-g)
@@ -304,7 +300,7 @@ jobs:
             ./kernel_platform/oplus/bazel/oplus_modules_variant.sh ${{ inputs.soc }} "$BUILD_TYPE" ""
             ./kernel_platform/build_with_bazel.py -t ${{ inputs.soc }} $BUILD_TYPE "${BAZEL_ARGS[@]}" -o "$(pwd)/out"
           else
-            LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
+            LTO=full ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
           fi
 
       - name: Copy Images
