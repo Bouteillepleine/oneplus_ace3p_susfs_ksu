@@ -250,6 +250,14 @@ jobs:
           echo "CONFIG_TCP_CONG_WESTWOOD=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TCP_CONG_HTCP=n" >> ./common/arch/arm64/configs/gki_defconfig
 
+          # Add Raid config setting
+          echo "CONFIG_BTRFS_FS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_XOR_BLOCKS=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CRYPTO_XXHASH=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_RAID6_PQ=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_RAID6_PQ_BENCHMARK=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_BCM_SBA_RAID=y" >> ./common/arch/arm64/configs/gki_defconfig
+
       - name: Run sed and perl Commands
         run: |
           echo "Changing to configuration directory: $CONFIG..."
