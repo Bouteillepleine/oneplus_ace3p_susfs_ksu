@@ -27,21 +27,9 @@ on:
   
 jobs:
   build-kernel-oneplus-kernelsu-susfs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
-      # - name: Maximize build space
-        # uses: easimon/maximize-build-space@master
-        # with:
-          # root-reserve-mb: 8192
-          # temp-reserve-mb: 2048
-          # swap-size-mb: 8192
-          # remove-dotnet: 'true'
-          # remove-android: 'true'
-          # remove-haskell: 'true'
-          # remove-codeql: 'true'
-          # remove-docker-images: 'true'
-
       - name: Setup System
         run: |
           export DEBIAN_FRONTEND=noninteractive
@@ -79,10 +67,10 @@ jobs:
         run: |
           # Install dependencies
           sudo apt update
-          sudo apt install python3 python-is-python3
+          sudo apt install -y python3 python-is-python3
           
           mkdir -p ./git-repo
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ./git-repo/repo
+          curl -sSL https://storage.googleapis.com/git-repo-downloads/repo > ./git-repo/repo
           chmod a+rx ./git-repo/repo
           echo "REPO=$GITHUB_WORKSPACE/./git-repo/repo" >> $GITHUB_ENV
 
@@ -119,11 +107,11 @@ jobs:
           
           # Initialize and sync kernel source
           echo "Initializing and syncing kernel source..."
-          $REPO init -u https://github.com/OnePlusOSS/kernel_manifest.git -b ${{ inputs.branch }} -m ${{ inputs.manifest }} --repo-rev=v2.16 --depth=1
+          $REPO init -u https://github.com/OnePlusOSS/kernel_manifest.git -b ${{ inputs.branch }} -m ${{ inputs.manifest }} --repo-rev=v2.16 --depth=1 --no-clone-bundle --no-tags
           
           # Sync repo and apply patches
           $REPO --version
-          $REPO --trace sync -c -j$(nproc --all) --no-tags --fail-fast
+          $REPO --trace sync -c --no-clone-bundle --no-tags --optimized-fetch -j$(nproc --all) --fail-fast
       
       - name: Add KernelSU
         run: |
@@ -169,8 +157,8 @@ jobs:
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/kernel_platform/common"
           # Apply additional patch
-          cp ../../../kernel_patches/next/next_hooks.patch ./
-          patch -p1 --fuzz=3 < ./next_hooks.patch
+          cp ../../../kernel_patches/next/syscall_hooks.patch ./
+          patch -p1 --fuzz=3 < ./syscall_hooks.patch
           
       - name: Apply Hide Stuff Patches
         run: |
@@ -187,89 +175,75 @@ jobs:
           
           echo "Adding configuration settings to gki_defconfig..."
 
-          # Add KSU configuration settings
-          echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_WITH_KPROBES=n" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          # Add SUSFS configuration settings
-          echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          # Add additional tmpfs config setting
-          echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TMPFS_POSIX_ACL=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          # Network
-          echo "CONFIG_IP_NF_TARGET_TTL=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_IP6_NF_TARGET_HL=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_IP6_NF_MATCH_HL=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          # Scheduler
-          echo "CONFIG_SCHED_CLASS_EXT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_SMP=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MSM_PERFORMANCE=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          # power consumption
-          echo "CONFIG_NO_HZ_IDLE=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_PM_SLEEP_SMP=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_NO_HZ_IDLE=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_PM_SLEEP_SMP=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_ENERGY_MODEL=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_PM_AUTOSLEEP=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DEBUG_KERNEL=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DYNAMIC_DEBUG=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DEBUG_INFO=n" >> ./common/arch/arm64/configs/gki_defconfig
+           # ── Add KernelSU (KSU) support ──
+          echo "CONFIG_KSU=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_WITH_KPROBES=n" >> common/arch/arm64/configs/gki_defconfig
 
-          # Add bbr config setting
-          echo "CONFIG_TCP_CONG_ADVANCED=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_BBR=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DEFAULT_CUBIC=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DEFAULT_BBR=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo 'CONFIG_DEFAULT_TCP_CONG="bbr"' >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_NET_SCH_FQ=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_NET_SCH_FQ_CODEL=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_NET_SCH_DEFAULT=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DEFAULT_FQ=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo 'CONFIG_DEFAULT_NET_SCH="fq"' >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_BIC=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_WESTWOOD=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_HTCP=n" >> ./common/arch/arm64/configs/gki_defconfig
+          # ── Enable SUSFS (Secure SU Filesystem) add‑on ──
+          echo "CONFIG_KSU_SUSFS=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_PATH=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_MOUNT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_KSU_DEFAULT_MOUNT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_SUS_BIND_MOUNT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_KSTAT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SPOOF_UNAME=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_ENABLE_LOG=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_OVERLAYFS=n" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> common/arch/arm64/configs/gki_defconfig
 
-          # Add Raid config setting
-          echo "CONFIG_BTRFS_FS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_XOR_BLOCKS=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_CRYPTO_XXHASH=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_RAID6_PQ=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_RAID6_PQ_BENCHMARK=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_BCM_SBA_RAID=y" >> ./common/arch/arm64/configs/gki_defconfig
+          # ── Enhance tmpfs for rootshell tools ──
+          echo "CONFIG_TMPFS_XATTR=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_TMPFS_POSIX_ACL=y" >> common/arch/arm64/configs/gki_defconfig
+
+          # ── Netfilter: TTL targets/matches ──
+          echo "CONFIG_IP_NF_TARGET_TTL=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_IP6_NF_TARGET_HL=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_IP6_NF_MATCH_HL=y" >> common/arch/arm64/configs/gki_defconfig
+
+          # ── Additional Netfilter Options ──
+          echo "CONFIG_WIREGUARD=y" >> common/arch/arm64/configs/gki_defconfig          
+
+          # ── Scheduler & CPU governor tweaks ──
+          echo "CONFIG_SCHED_CLASS_EXT=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_SMP=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CPU_FREQ_GOV_SCHEDUTIL=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MSM_PERFORMANCE=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_FAIR_GROUP_SCHED=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CFS_BANDWIDTH=y" >> common/arch/arm64/configs/gki_defconfig
+
+          # ── Power & idle optimizations ──
+          echo "CONFIG_NO_HZ_IDLE=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_PM_SLEEP_SMP=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CPU_IDLE=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_ENERGY_MODEL=y" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_PM_AUTOSLEEP=y" >> common/arch/arm64/configs/gki_defconfig
+
+          # ── Strip debug to reduce size ──
+          echo "CONFIG_DEBUG_KERNEL=n" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DYNAMIC_DEBUG=n" >> common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DEBUG_INFO=n" >> common/arch/arm64/configs/gki_defconfig
 
       - name: Run sed and perl Commands
         run: |
           echo "Changing to configuration directory: $CONFIG..."
           cd "$CONFIG/kernel_platform"
           
-          echo "Running sed commands..."         
+          echo "Running sed commands..."
+
+          sed -i 's/CONFIG_LTO=n/CONFIG_LTO=y/' "./common/arch/arm64/configs/gki_defconfig"
+          sed -i 's/CONFIG_LTO_CLANG_FULL=y/CONFIG_LTO_CLANG_THIN=y/' "./common/arch/arm64/configs/gki_defconfig"
+          sed -i 's/CONFIG_LTO_CLANG_NONE=y/CONFIG_LTO_CLANG_THIN=y/' "./common/arch/arm64/configs/gki_defconfig"
           
           # Run sed commands for modifications
           sed -i 's/check_defconfig//' ./common/build.config.gki
-          sed -i '$s|echo "\$res"|echo "\$res"|' ./common/scripts/setlocalversion
-          sed -i '$s|echo "\$res"|echo "\$res"|' ./msm-kernel/scripts/setlocalversion
-          sed -i '$s|echo "\$res"|echo "\$res"|' ./external/dtc/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "\$res-Wild+"|' ./common/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "\$res-Wild+"|' ./msm-kernel/scripts/setlocalversion
+          sed -i '$s|echo "\$res"|echo "\$res-Wild+"|' ./external/dtc/scripts/setlocalversion
           sed -i "/stable_scmversion_cmd/s/-maybe-dirty//g" ./build/kernel/kleaf/impl/stamp.bzl || echo "No stamp.bzl!"
           sed -i 's/-dirty//' ./common/scripts/setlocalversion
           sed -i 's/-dirty//' ./msm-kernel/scripts/setlocalversion
@@ -323,7 +297,7 @@ jobs:
             ./kernel_platform/oplus/bazel/oplus_modules_variant.sh ${{ inputs.soc }} "$BUILD_TYPE" ""
             ./kernel_platform/build_with_bazel.py -t ${{ inputs.soc }} $BUILD_TYPE "${BAZEL_ARGS[@]}" -o "$(pwd)/out"
           else
-            LTO=full ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
+            LTO=thin ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ inputs.soc }} "$BUILD_TYPE"
           fi
 
       - name: Copy Images
@@ -333,6 +307,12 @@ jobs:
 
           echo "Copying Image"
           cp ./out/dist/Image ../AnyKernel3/Image
+          if [ "${{ inputs.model }}" == "OPAce5Pro" ]; then
+            cp ./out/dist/dtbo.img ../AnyKernel3/
+            cp ./out/dist/system_dlkm.erofs.img ../AnyKernel3/system_dlkm.img
+            # cp ./out/dist/vendor_dlkm.img ../AnyKernel3/
+            # cp ./out/dist/vendor_boot.img ../AnyKernel3/
+          fi
 
       - name: Create ZIP Files for Different Formats
         run: |
@@ -343,7 +323,12 @@ jobs:
           ZIP_NAME="${{ inputs.model }}_${{ inputs.android_version }}_${{ inputs.kernel_version }}_Next_SUSFS_AnyKernel3.zip"
           echo "Creating zip file $ZIP_NAME..."
           zip -r "../$ZIP_NAME" ./*
-          
+          # Fengchi Patch for OPAce5Pro
+          if [ "${{ inputs.model }}" == "OPAce5Pro" ]; then
+            sed -i 's/hmbird/xxbird/g' dtbo.img
+            zip -r "../$ZIP_NAME-CN-version.zip" ./*
+          fi
+
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
