@@ -90,12 +90,10 @@ on:
       SUSFS_CI:
         type: boolean
         description: "Use CI build for downloading SUSFS module?"
-        required: true
         default: true
       VFS:
         type: boolean
-        description: "Enable manual hooks (VFS)?"
-        required: true
+        description: "Enable manual hooks (VFS)?"       
         default: true
       ZRAM:
         type: boolean
@@ -104,9 +102,8 @@ on:
         default: false
       PRODUCTION_BUILD:
         type: boolean
-        description: "Enable ThinLTO for production builds?"
-        required: true
-        default: false
+        description: "Enable ThinLTO for production builds?"        
+        default: true
 
 jobs:
   build:
