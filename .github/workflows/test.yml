@@ -1,4 +1,3 @@
-```yaml
 name: Build OnePlus_SukiSU Ultra All
 on:
   workflow_dispatch:
@@ -501,4 +500,3 @@ jobs:
         with:
           name: AnyKernel3_SukiSUUltra_${{ env.KSUVER }}_${{ steps.feil_clean.outputs.value }}_KPM${{ steps.suffix.outputs.value }}
           path: ./AnyKernel3/*
-```
