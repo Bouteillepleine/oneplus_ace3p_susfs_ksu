@@ -6,7 +6,7 @@ on:
         type: choice
         description: "Branch"
         required: true
-        default: sm8550
+        default: sm8650
         options:
           - sm7550
           - sm7675
