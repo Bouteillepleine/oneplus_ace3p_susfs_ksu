@@ -124,10 +124,11 @@ jobs:
           git config --global user.name "OplusKernelBuilder"
           git config --global user.email "builder@opluskernel.org"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
-          sudo apt update && sudo apt upgrade -y
-          sudo apt install -y python3 git curl jq
+          sudo apt update -y
+          sudo apt install -y python3 python-is-python3 git curl patch parallel bc > apt_install.log 2>&1 || { cat apt_install.log; echo "Error: apt install failed"; exit 1; }
+          df -h > disk_usage.log
 
       - name: Show selected inputs debug
         run: |
