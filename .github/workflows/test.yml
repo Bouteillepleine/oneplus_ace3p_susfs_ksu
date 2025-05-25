@@ -1,3 +1,4 @@
+```yaml
 name: Build OnePlus_SukiSU Ultra All
 on:
   workflow_dispatch:
@@ -90,20 +91,18 @@ on:
       SUSFS_CI:
         type: boolean
         description: "Use CI build for downloading SUSFS module?"
+        required: true
         default: true
       VFS:
         type: boolean
-        description: "Enable manual hooks (VFS)?"       
+        description: "Enable manual hooks (VFS)?"
+        required: true
         default: true
       ZRAM:
         type: boolean
         description: "Enable additional ZRAM algorithms?"
         required: true
         default: false
-      PRODUCTION_BUILD:
-        type: boolean
-        description: "Enable ThinLTO for production builds?"        
-        default: true
 
 jobs:
   build:
@@ -143,7 +142,6 @@ jobs:
           echo "Selected SUSFS_CI: ${{ github.event.inputs.SUSFS_CI }}"
           echo "Selected VFS: ${{ github.event.inputs.VFS }}"
           echo "Selected ZRAM: ${{ github.event.inputs.ZRAM }}"
-          echo "Production Build: ${{ github.event.inputs.PRODUCTION_BUILD }}"
 
       - name: Install repo tool
         run: |
@@ -394,13 +392,13 @@ jobs:
         if: ${{ github.event.inputs.CPU == 'sm8650' || github.event.inputs.CPU == 'sm7675' }}
         run: |
           cd kernel_workspace
-          ./kernel_platform/build_with_bazel.py -t ${{ github.event.inputs.CPUD }} ${{ github.event.inputs.BUILD_METHOD }} --jobs=$(nproc --all) --local_cpu_resources=HOST_CPUS*1.0 --local_ram_resources=HOST_RAM*0.9
+          ./kernel_platform/build_with_bazel.py -t ${{ github.event.inputs.CPUD }} ${{ github.event.inputs.BUILD_METHOD }} --lto=thin --jobs=$(nproc --all) --local_cpu_resources=HOST_CPUS*1.0 --local_ram_resources=HOST_RAM*0.9
 
       - name: Fallback build kernel
         if: ${{ github.event.inputs.CPU != 'sm8650' && github.event.inputs.CPU != 'sm7675' }}
         run: |
           cd kernel_workspace
-          LTO=${{ github.event.inputs.PRODUCTION_BUILD == 'true' && 'thin' || 'none' }} SYSTEM_DLKM_RE_SIGN=0 BUILD_SYSTEM_DLKM=0 KMI_SYMBOL_LIST_STRICT_MODE=0 ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ github.event.inputs.CPUD }} ${{ github.event.inputs.BUILD_METHOD }}
+          LTO=thin SYSTEM_DLKM_RE_SIGN=0 BUILD_SYSTEM_DLKM=0 KMI_SYMBOL_LIST_STRICT_MODE=0 ./kernel_platform/oplus/build/oplus_build_kernel.sh ${{ github.event.inputs.CPUD }} ${{ github.event.inputs.BUILD_METHOD }}
 
       - name: Make AnyKernel3
         run: |
@@ -503,3 +501,4 @@ jobs:
         with:
           name: AnyKernel3_SukiSUUltra_${{ env.KSUVER }}_${{ steps.feil_clean.outputs.value }}_KPM${{ steps.suffix.outputs.value }}
           path: ./AnyKernel3/*
+```
